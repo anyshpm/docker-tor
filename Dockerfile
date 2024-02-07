@@ -1,18 +1,21 @@
-## obfs4proxy is still in edge's testing repository.
-#FROM alpine:3.16
-FROM alpine:edge
+FROM alpine:3.16
 
 MAINTAINER Anyshpm Chen<anyshpm@anyshpm.com>
 
-ARG TOR_VERSION
-ENV TOR_VERSION ${TOR_VERSION:-0.4.7.10-r0}
+ARG TOR_EXPERT_BUNDLE_VERSION
+ENV TOR_EXPERT_BUNDLE_VERSION ${TOR_EXPERT_BUNDLE_VERSION:-13.0.9}
 
-ARG OBFS4PROXY_VERSION
-ENV OBFS4PROXY_VERSION ${OBFS4PROXY_VERSION:-0.0.14-r1}
+ENV PACKAGE_NAME tor-expert-bundle-linux-x86_64-${TOR_EXPERT_BUNDLE_VERSION}.tar.gz
+ENV LD_LIBRARY_PATH /tor
 
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
+WORKDIR /
 
 RUN set -x && \
-    apk add tor=${TOR_VERSION} obfs4proxy=${OBFS4PROXY_VERSION}
+    apk add gcompat libc6-compat && \
+    wget https://archive.torproject.org/tor-package-archive/torbrowser/${TOR_EXPERT_BUNDLE_VERSION}/$PACKAGE_NAME && \
+    tar xf $PACKAGE_NAME && \
+    rm -rf $PACKAGE_NAME /debug
 
-CMD tor -f /etc/tor/torrc
+WORKDIR /tor
+
+CMD ./tor -f /etc/tor/torrc
